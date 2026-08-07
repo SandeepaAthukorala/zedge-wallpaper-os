@@ -115,6 +115,28 @@ export default async function Dashboard() {
           </ul>
         </div>
       </div>
+
+      <div className="bg-zinc-900 border border-purple-900/50 rounded-xl p-6 mt-8">
+        <div className="flex items-start justify-between">
+          <div>
+            <h2 className="text-xl font-semibold text-purple-400 mb-2 flex items-center gap-2">
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+              AI Engine Setup
+            </h2>
+            <p className="text-sm text-zinc-400 max-w-3xl leading-relaxed">
+              To enable local GPU 4K upscaling, you need to manually download the Real-ESRGAN engine. 
+              <br/><br/>
+              1. Download the <a href="https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip" className="text-purple-400 hover:underline" target="_blank" rel="noreferrer">Windows Portable ZIP from GitHub</a>.<br/>
+              2. Extract the ZIP file.<br/>
+              3. Create a folder in your project root at <code className="bg-zinc-950 px-1 py-0.5 rounded text-zinc-300">bin/realesrgan/</code>.<br/>
+              4. Copy <code className="bg-zinc-950 px-1 py-0.5 rounded text-zinc-300">realesrgan-ncnn-vulkan.exe</code> (and its required files) into that new folder.
+            </p>
+          </div>
+          <a href="https://github.com/xinntao/Real-ESRGAN/releases/download/v0.2.5.0/realesrgan-ncnn-vulkan-20220424-windows.zip" target="_blank" rel="noreferrer" className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-md font-medium text-sm transition-colors shadow-lg whitespace-nowrap">
+            Download Engine
+          </a>
+        </div>
+      </div>
     </div>
   );
 }

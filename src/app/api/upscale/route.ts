@@ -2,36 +2,48 @@ import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { exec } from 'child_process';
 import util from 'util';
+import path from 'path';
 
 const execAsync = util.promisify(exec);
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
-    const { wallpaperId } = data;
+    const { wallpaperId, originalImage } = data;
 
-    const wallpaper = await prisma.wallpaper.findUnique({
-      where: { id: wallpaperId }
-    });
-
-    if (!wallpaper) {
-      return NextResponse.json({ error: 'Wallpaper not found' }, { status: 404 });
+    if (!originalImage) {
+      return NextResponse.json({ error: 'No original image provided' }, { status: 400 });
     }
 
-    // MOCK UPSCALER INTEGRATION
-    // This is where you would call your local upscaler, e.g., Real-ESRGAN
-    // const command = `realesrgan-ncnn-vulkan.exe -i ./uploads/${wallpaperId}.jpg -o ./upscaled/${wallpaperId}_upscaled.jpg`;
-    // await execAsync(command);
+    // Extract filename from originalImage (e.g. /uploads/1786106975654-3039240.png -> 1786106975654-3039240.png)
+    const filename = originalImage.split('/').pop();
+    if (!filename) {
+      return NextResponse.json({ error: 'Invalid original image path' }, { status: 400 });
+    }
+
+    const ext = path.extname(filename);
+    const basename = path.basename(filename, ext);
+    const outputFilename = `${basename}_upscaled.png`;
+
+    const inputPath = path.join(process.cwd(), 'public', 'uploads', filename);
+    const outputPath = path.join(process.cwd(), 'public', 'uploads', outputFilename);
+    const executablePath = path.join(process.cwd(), 'bin', 'realesrgan', 'realesrgan-ncnn-vulkan.exe');
+
+    // Run Real-ESRGAN
+    // -n realesrgan-x4plus is the default 4x upscaling model
+    const command = `"${executablePath}" -i "${inputPath}" -o "${outputPath}" -n realesrgan-x4plus`;
     
-    // Simulate processing delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Execute the command (this takes time depending on GPU)
+    await execAsync(command);
+    
+    const upscaledImage = `/uploads/${outputFilename}`;
 
     // Update database
     const updated = await prisma.wallpaper.update({
       where: { id: wallpaperId },
       data: {
         status: 'Upscaled',
-        upscaledImagePath: `/upscaled/${wallpaperId}_upscaled.jpg`
+        upscaledImage: upscaledImage
       }
     });
 

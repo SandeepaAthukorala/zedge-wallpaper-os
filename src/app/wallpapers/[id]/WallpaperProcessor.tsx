@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 
 export default function WallpaperProcessor({ wallpaper, profiles, categories }: any) {
@@ -26,6 +26,7 @@ export default function WallpaperProcessor({ wallpaper, profiles, categories }: 
   const [upscaledImage, setUpscaledImage] = useState<string | null>(wallpaper.upscaledImage || null);
   const [upscaling, setUpscaling] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [jsonInput, setJsonInput] = useState('');
 
   const handleChange = (e: any) => {
     setData({ ...data, [e.target.name]: e.target.value });
@@ -45,6 +46,14 @@ export default function WallpaperProcessor({ wallpaper, profiles, categories }: 
     }
     setSaving(false);
   };
+
+  useEffect(() => {
+    if (!hasChanges) return;
+    const timer = setTimeout(() => {
+      handleSave();
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, [data, hasChanges]);
 
   const handleImageUpload = async (e: any) => {
     const file = e.target.files?.[0];
@@ -98,6 +107,29 @@ export default function WallpaperProcessor({ wallpaper, profiles, categories }: 
     }
   };
 
+  const handleUpscale = async () => {
+    if (!originalImage) return;
+    setUpscaling(true);
+    try {
+      const res = await fetch('/api/upscale', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallpaperId: wallpaper.id, originalImage })
+      });
+      const json = await res.json();
+      if (json.upscaledImage) {
+        setUpscaledImage(json.upscaledImage);
+        setData(prev => ({ ...prev, upscaledImage: json.upscaledImage, status: 'Upscaled' }));
+      } else {
+        alert(json.error || 'Failed to upscale image');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error upscaling image');
+    }
+    setUpscaling(false);
+  };
+
   const generateSEO = () => {
     // Basic local SEO generation logic
     const baseKeywords = data.prompt ? data.prompt.split(',').map((k: string) => k.trim()).slice(0, 5) : [];
@@ -145,12 +177,11 @@ OUTPUT EXACTLY AND ONLY THIS RAW JSON FORMAT. DO NOT ADD MARKDOWN CODE BLOCKS:
     alert('AI enhancement prompt copied! Paste it into Gemini or ChatGPT.');
   };
 
-  const handlePasteJSON = (e: any) => {
-    const val = e.target.value;
-    if (!val) return;
+  const handleApplyJSON = () => {
+    if (!jsonInput) return;
     try {
       // Find the JSON block in case the LLM wrapped it in markdown
-      const jsonStr = val.replace(/```json/g, '').replace(/```/g, '').trim();
+      const jsonStr = jsonInput.replace(/```json/g, '').replace(/```/g, '').trim();
       const parsed = JSON.parse(jsonStr);
       if (parsed.title || parsed.prompt) {
         setData(prev => ({
@@ -160,11 +191,11 @@ OUTPUT EXACTLY AND ONLY THIS RAW JSON FORMAT. DO NOT ADD MARKDOWN CODE BLOCKS:
           description: parsed.description || prev.description,
           tags: parsed.tags || prev.tags
         }));
-        e.target.value = ''; // clear textarea on success
+        setJsonInput(''); // clear textarea on success
         alert('Data successfully enhanced!');
       }
     } catch (err) {
-      // Not a valid JSON or still typing, do nothing
+      alert('Invalid JSON format. Please check the pasted text.');
     }
   };
 
@@ -180,18 +211,16 @@ OUTPUT EXACTLY AND ONLY THIS RAW JSON FORMAT. DO NOT ADD MARKDOWN CODE BLOCKS:
           <h1 className="text-2xl font-bold tracking-tight text-white">Process Wallpaper</h1>
         </div>
         <div className="space-x-3 flex items-center">
-          {hasChanges && <span className="text-amber-500 text-sm font-medium mr-2">Unsaved changes</span>}
-          <button 
-            onClick={handleSave} 
-            disabled={!hasChanges || saving}
+          {hasChanges && !saving && <span className="text-amber-500 text-sm font-medium mr-2">Waiting to save...</span>}
+          <div 
             className={`px-4 py-2 rounded-md font-medium text-sm transition-colors ${
-              hasChanges 
-                ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-[0_0_15px_rgba(217,119,6,0.3)]' 
-                : 'bg-zinc-800 text-zinc-400 cursor-not-allowed'
+              saving || hasChanges
+                ? 'bg-amber-600 text-white shadow-[0_0_15px_rgba(217,119,6,0.3)]' 
+                : 'bg-zinc-800 text-zinc-400'
             }`}
           >
-            {saving ? 'Saving...' : (hasChanges ? 'Save Changes' : 'Saved')}
-          </button>
+            {saving ? 'Auto-saving...' : (hasChanges ? 'Unsaved Changes' : '✓ All changes saved')}
+          </div>
         </div>
       </header>
 
@@ -269,11 +298,34 @@ OUTPUT EXACTLY AND ONLY THIS RAW JSON FORMAT. DO NOT ADD MARKDOWN CODE BLOCKS:
                 <label className="block text-sm font-medium text-zinc-400 mb-2">Original Generation</label>
                 {originalImage ? (
                   <div className="relative h-80 bg-zinc-950 border border-zinc-800 rounded-md overflow-hidden">
-                    <img src={originalImage} alt="Original" className="w-full h-full object-cover" />
+                    <img src={originalImage} alt="Original" className={`w-full h-full object-cover transition-all duration-500 ${upscaling ? 'blur-sm brightness-50' : ''}`} />
                     <div className="absolute top-2 right-2 flex gap-2">
                       <a href={originalImage} download={`original-${wallpaper.id}.png`} className="bg-zinc-800/90 text-white text-xs px-2 py-1 rounded hover:bg-zinc-700 shadow-sm border border-zinc-700">Download</a>
                       <button onClick={() => { setOriginalImage(null); setUpscaledImage(null); setData(prev => ({ ...prev, originalImage: null, upscaledImage: null })); }} className="bg-red-600/90 text-white text-xs px-2 py-1 rounded hover:bg-red-500 shadow-sm">Remove</button>
                     </div>
+                    {!upscaledImage && (
+                      <div className="absolute inset-x-0 bottom-0 p-4">
+                        {upscaling ? (
+                          <div className="bg-zinc-900/90 backdrop-blur-sm border border-zinc-700 rounded-lg p-3 shadow-2xl">
+                            <div className="flex justify-between text-xs font-medium text-purple-400 mb-2">
+                              <span>Real-ESRGAN x4plus</span>
+                              <span className="animate-pulse">Processing...</span>
+                            </div>
+                            <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
+                              <div 
+                                className="bg-purple-500 h-1.5 rounded-full transition-all ease-out" 
+                                style={{ width: upscaling ? '95%' : '0%', transitionDuration: '15s' }}
+                              ></div>
+                            </div>
+                          </div>
+                        ) : (
+                          <button onClick={handleUpscale} className="w-full bg-purple-600/90 backdrop-blur-sm text-white font-medium py-2 rounded shadow-lg hover:bg-purple-500 transition-colors flex items-center justify-center gap-2">
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                            Upscale to 4K
+                          </button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="flex items-center justify-center w-full h-80 border-2 border-zinc-800 border-dashed rounded-md bg-zinc-950 hover:bg-zinc-900 transition-colors">
@@ -360,9 +412,15 @@ OUTPUT EXACTLY AND ONLY THIS RAW JSON FORMAT. DO NOT ADD MARKDOWN CODE BLOCKS:
               <label className="block text-sm font-medium text-zinc-400 mb-2">Paste LLM JSON Output</label>
               <textarea 
                 placeholder='{ "title": "...", "prompt": "..." }'
-                onChange={handlePasteJSON}
+                value={jsonInput}
+                onChange={(e) => setJsonInput(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-md p-3 text-sm text-white focus:outline-none focus:border-purple-500/50 min-h-[120px] font-mono"
               />
+              {jsonInput.trim() !== '' && (
+                <button onClick={handleApplyJSON} className="w-full mt-2 bg-purple-600 text-white px-4 py-2 rounded-md font-medium text-sm hover:bg-purple-500 transition-colors shadow-lg">
+                  Apply AI Enhancement
+                </button>
+              )}
             </div>
           </div>
         </div>
