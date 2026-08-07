@@ -270,7 +270,10 @@ OUTPUT EXACTLY AND ONLY THIS RAW JSON FORMAT. DO NOT ADD MARKDOWN CODE BLOCKS:
                 {originalImage ? (
                   <div className="relative h-80 bg-zinc-950 border border-zinc-800 rounded-md overflow-hidden">
                     <img src={originalImage} alt="Original" className="w-full h-full object-cover" />
-                    <button onClick={() => { setOriginalImage(null); setUpscaledImage(null); setData(prev => ({ ...prev, originalImage: null, upscaledImage: null })); }} className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-500">Remove</button>
+                    <div className="absolute top-2 right-2 flex gap-2">
+                      <a href={originalImage} download={`original-${wallpaper.id}.png`} className="bg-zinc-800/90 text-white text-xs px-2 py-1 rounded hover:bg-zinc-700 shadow-sm border border-zinc-700">Download</a>
+                      <button onClick={() => { setOriginalImage(null); setUpscaledImage(null); setData(prev => ({ ...prev, originalImage: null, upscaledImage: null })); }} className="bg-red-600/90 text-white text-xs px-2 py-1 rounded hover:bg-red-500 shadow-sm">Remove</button>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center w-full h-80 border-2 border-zinc-800 border-dashed rounded-md bg-zinc-950 hover:bg-zinc-900 transition-colors">
@@ -292,7 +295,10 @@ OUTPUT EXACTLY AND ONLY THIS RAW JSON FORMAT. DO NOT ADD MARKDOWN CODE BLOCKS:
                   <div className="relative h-80 bg-zinc-950 border border-zinc-800 rounded-md overflow-hidden ring-2 ring-blue-500">
                     <img src={upscaledImage} alt="Upscaled" className="w-full h-full object-cover" />
                     <div className="absolute top-2 left-2 bg-blue-600 text-white text-xs px-2 py-1 rounded font-medium shadow-lg">4K Upscaled</div>
-                    <button onClick={() => { setUpscaledImage(null); setData(prev => ({ ...prev, upscaledImage: null })); }} className="absolute top-2 right-2 bg-red-600 text-white text-xs px-2 py-1 rounded hover:bg-red-500">Remove</button>
+                    <div className="absolute top-2 right-2 flex gap-2">
+                      <a href={upscaledImage} download={`upscaled-${wallpaper.id}.png`} className="bg-zinc-800/90 text-white text-xs px-2 py-1 rounded hover:bg-zinc-700 shadow-sm border border-zinc-700">Download</a>
+                      <button onClick={() => { setUpscaledImage(null); setData(prev => ({ ...prev, upscaledImage: null })); }} className="bg-red-600/90 text-white text-xs px-2 py-1 rounded hover:bg-red-500 shadow-sm">Remove</button>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex items-center justify-center w-full h-80 border-2 border-zinc-800 border-dashed rounded-md bg-zinc-950 hover:bg-zinc-900 transition-colors">
