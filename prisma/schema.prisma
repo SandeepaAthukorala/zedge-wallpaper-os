@@ -1,0 +1,60 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:../database/sanda.db"
+}
+
+model Batch {
+  id                  String      @id @default(uuid())
+  month               String
+  year                Int
+  theme               String
+  targetAudience      String?
+  category            String
+  promptStrategy      String?
+  priority            String      @default("Medium") // High, Medium, Low
+  competitionEstimate String?
+  trendScore          Int?
+  revenueEstimate     String?
+  status              String      @default("Planned") // Planned, In Progress, Completed
+  createdAt           DateTime    @default(now())
+  updatedAt           DateTime    @updatedAt
+  wallpapers          Wallpaper[]
+}
+
+model Wallpaper {
+  id                String   @id @default(uuid())
+  batchId           String?
+  batch             Batch?   @relation(fields: [batchId], references: [id])
+  title             String?
+  prompt            String?
+  description       String?
+  tags              String?
+  category          String?
+  targetProfile     String?
+  targetRevenue     String?  @default("Ad Plays") // Ad Plays, Zedge Credits
+  status            String   @default("Pending") // Pending, Upscaled, Published
+  originalImagePath String?
+  upscaledImagePath String?
+  zedgeUrl          String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model Profile {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  tags        String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+}
