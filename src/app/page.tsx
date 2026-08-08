@@ -61,9 +61,6 @@ export default async function Dashboard() {
           <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard</h1>
           <p className="text-zinc-400 mt-1">Welcome back. Here is the overview of your publishing operations.</p>
         </div>
-        <Link href="/batches/new" className="bg-white text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-zinc-200 transition-colors">
-          + New Batch
-        </Link>
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

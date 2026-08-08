@@ -27,9 +27,6 @@ export default async function BatchDetailPage({ params }: { params: Promise<{ id
           <h1 className="text-3xl font-bold tracking-tight text-white">{batchData.theme} ({batchData.month} {batchData.year})</h1>
           <p className="text-zinc-400 mt-1">Category: {batchData.category} | Status: {batchData.status} | Priority: {batchData.priority}</p>
         </div>
-        <Link href={`/wallpapers/new?batchId=${batchData.id}`} className="bg-white text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-zinc-200 transition-colors">
-          + Add Wallpaper
-        </Link>
       </header>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">

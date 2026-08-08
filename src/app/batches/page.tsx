@@ -18,9 +18,6 @@ export default async function BatchesPage() {
           <h1 className="text-3xl font-bold tracking-tight text-white">Batch Manager</h1>
           <p className="text-zinc-400 mt-1">Manage your monthly publishing batches.</p>
         </div>
-        <Link href="/batches/new" className="bg-white text-black px-4 py-2 rounded-md font-medium text-sm hover:bg-zinc-200 transition-colors">
-          + Create Batch
-        </Link>
       </header>
 
       <div className="bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden">
